@@ -11,7 +11,6 @@ jobs:
   flowzone:
     name: Flowzone
     uses: product-os/flowzone/.github/workflows/flowzone.yml@master
-    secrets: inherit
     with:
       rust_binaries: false
       rust_toolchain: 1.67.1
