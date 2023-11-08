@@ -1,0 +1,55 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - "ui/**"
+      - "docs/**"
+  pull_request:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - "ui/**"
+      - "docs/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabihf
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cargo cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Setup toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        targets: ${{ matrix.target }}
+    - name: Install Cross
+      run: which cross || cargo install cross
+    - name: Build
+      run: cross build --release --target=${{ matrix.target }}
+    - name: Test
+      run: cross test --release --target=${{ matrix.target }}
+    - name: Format
+      run: cargo fmt --all -- --check
